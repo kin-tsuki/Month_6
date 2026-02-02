@@ -6,6 +6,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 
 from .models import Category, Product, Review
 from .serializers import (
@@ -18,6 +19,8 @@ from .serializers import (
     ReviewValidateSerializer
 )
 from common.permissions import IsOwner, IsAnonymous, CanEditWithin15Min, IsModerator
+from common.validators import validate_user_age
+
 
 PAGE_SIZE = 5
 
@@ -72,6 +75,13 @@ class ProductListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsOwner | IsAnonymous | IsModerator]
 
     def post(self, request, *args, **kwargs):
+
+        try:
+            validate_user_age(request.user)
+        except ValidationError as e:
+            return Response(status=status.HTTP_403_FORBIDDEN, 
+                            data={'error': str(e.detail[0])})
+
         serializer = ProductValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

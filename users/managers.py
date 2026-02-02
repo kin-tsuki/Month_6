@@ -1,7 +1,7 @@
 from django.contrib.auth.models import BaseUserManager
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, phone_number, password=None, **extra_fields):
+    def create_user(self, email, phone_number=None, password=None, **extra_fields):
         if not email:
             raise ValueError("Email is not found")
         email = self.normalize_email(email)

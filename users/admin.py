@@ -5,10 +5,10 @@ from django.contrib.auth.admin import UserAdmin
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ("id", "email", "phone_number", "is_active")
+    list_display = ("id", "email", "phone_number", "is_active", "birthdate")
     ordering = ("email",)
     fieldsets = (
-        (None, {"fields": ("email", "password", "phone_number")}),
+        (None, {"fields": ("email", "password", "phone_number", "birthdate")}),
         (
             "Permissions",
             {
