@@ -4,6 +4,11 @@ from users.models import ConfirmationCode, CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
+class OAuthCodeSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
