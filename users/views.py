@@ -13,11 +13,11 @@ from .serializers import (
     ConfirmationSerializer,
     CustomTokenObtainPairSerializer
 )
-from .models import ConfirmationCode
 import random
 import string
 from users.models import CustomUser
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.core.cache import cache
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -74,10 +74,7 @@ class RegistrationAPIView(CreateAPIView):
             # Create a random 6-digit code
             code = ''.join(random.choices(string.digits, k=6))
 
-            confirmation_code = ConfirmationCode.objects.create(
-                user=user,
-                code=code
-            )
+            cache.set(f"confirmation_code:{user.id}", code, timeout=300)
 
         return Response(
             status=status.HTTP_201_CREATED,
@@ -96,6 +93,7 @@ class ConfirmUserAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         user_id = serializer.validated_data['user_id']
+        cache.delete(f"confirmation_code:{user_id}")
 
         with transaction.atomic():
             user = CustomUser.objects.get(id=user_id)
@@ -103,8 +101,6 @@ class ConfirmUserAPIView(CreateAPIView):
             user.save()
 
             token, _ = Token.objects.get_or_create(user=user)
-
-            ConfirmationCode.objects.filter(user=user).delete()
 
         return Response(
             status=status.HTTP_200_OK,
