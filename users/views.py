@@ -18,6 +18,7 @@ import string
 from users.models import CustomUser
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.core.cache import cache
+from users.tasks import send_otp
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -76,11 +77,13 @@ class RegistrationAPIView(CreateAPIView):
 
             cache.set(f"confirmation_code:{user.id}", code, timeout=300)
 
+            send_otp.delay(email, code)
+
+
         return Response(
             status=status.HTTP_201_CREATED,
             data={
-                'user_id': user.id,
-                'confirmation_code': code
+                'user_id': user.id
             }
         )
 

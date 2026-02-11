@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 import os 
 from django.utils import timezone 
+from users.tasks import send_login_mail
 
 
 User = get_user_model()
@@ -64,6 +65,8 @@ class GoogleLoginAPIView(CreateAPIView):
         user.is_active = True
         user.last_login = timezone.now()
         user.save()
+
+        send_login_mail.delay(email=email)
 
         refresh = RefreshToken.for_user(user)
         refresh['email'] = user.email
